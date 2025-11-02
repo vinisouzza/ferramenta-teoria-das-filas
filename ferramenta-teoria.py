@@ -347,31 +347,116 @@ class CalculadoraFilas(tk.Tk):
             return "Parâmetros não disponíveis."
 
     def mostrar_ajuda(self):
-        """Exibe uma janela de pop-up com informações de ajuda."""
-        titulo = "Ajuda - Conceitos de Teoria das Filas"
-        mensagem = (
-            "--- Parâmetros de Entrada ---\n\n"
-            "λ (Lambda): Taxa de Chegada\n"
-            "É a frequência com que os clientes chegam ao sistema (ex: 10 clientes/hora).\n\n"
-            "μ (Mi): Taxa de Atendimento (por servidor)\n"
-            "É a capacidade com que um único servidor processa os clientes (ex: 12 clientes/hora).\n\n"
-            "s (ou c): Número de Servidores\n"
-            "A quantidade de canais de atendimento paralelos disponíveis (para o modelo M/M/c).\n\n"
-            "K: Capacidade do Sistema\n"
-            "O número total de clientes permitidos no sistema (fila + atendimento) (para o modelo M/M/1/K).\n\n"
-            "--- Modelos ---\n\n"
-            "M/M/1: 1 servidor, fila infinita.\n"
-            "M/M/c: 'c' servidores, fila infinita.\n"
-            "M/M/1/K: 1 servidor, fila finita (capacidade K).\n\n"
-            "--- Métricas de Saída ---\n\n"
-            "ρ (Rho): Utilização do sistema.\n"
-            "P₀: Probabilidade de o sistema estar vazio.\n"
-            "L: Número médio de clientes no sistema (na fila + em atendimento).\n"
-            "Lq: Número médio de clientes na fila (apenas esperando).\n"
-            "W: Tempo médio que um cliente passa no sistema (espera + atendimento).\n"
-            "Wq: Tempo médio que um cliente passa na fila (apenas esperando)."
+        """Exibe uma janela de pop-up com informações de ajuda em abas."""
+
+        ajuda_janela = tk.Toplevel(self)
+        ajuda_janela.title("Ajuda - Conceitos de Teoria das Filas")
+        ajuda_janela.geometry("680x550")
+        ajuda_janela.transient(self)
+        ajuda_janela.grab_set()
+        ajuda_janela.resizable(False, False)
+
+        parametros_frame = ttk.LabelFrame(ajuda_janela, text="Parâmetros de Entrada", padding=10)
+        parametros_frame.pack(fill="x", padx=10, pady=(10, 5))
+
+        parametros_texto = (
+            "λ (Lambda) — Taxa média de chegada de clientes ao sistema (por unidade de tempo).\n"
+            "μ (Mi) — Taxa média de atendimento de um único servidor.\n"
+            "s (ou c) — Número de servidores em paralelo (exclusivo para o modelo M/M/c).\n"
+            "K — Capacidade máxima do sistema (fila + atendimento) no modelo M/M/1/K."
         )
-        messagebox.showinfo(titulo, mensagem)
+
+        ttk.Label(parametros_frame, text=parametros_texto, justify="left").pack(anchor="w")
+
+        notebook = ttk.Notebook(ajuda_janela)
+        notebook.pack(fill="both", expand=True, padx=10, pady=5)
+
+        def criar_aba(notebook_widget, titulo, conteudo):
+            frame = ttk.Frame(notebook_widget, padding=15)
+            notebook_widget.add(frame, text=titulo)
+
+            texto = tk.Text(
+                frame,
+                wrap=tk.WORD,
+                height=16,
+                font=("Helvetica", 10),
+                background="#f7f7f7",
+                relief="flat",
+            )
+            texto.insert(tk.END, conteudo)
+            texto.config(state="disabled")
+            texto.pack(fill="both", expand=True)
+
+        conteudo_mm1 = (
+            "Modelo M/M/1\n"
+            "================\n"
+            "• Sistema com um único servidor e capacidade infinita de fila.\n"
+            "• A chegada dos clientes segue uma distribuição de Poisson e os tempos de atendimento são exponenciais.\n"
+            "• O sistema é estável quando λ < μ.\n\n"
+            "Interpretação das métricas:\n"
+            "  - ρ (rho) representa a fração de tempo em que o servidor está ocupado.\n"
+            "  - P₀ é a probabilidade de não haver clientes no sistema.\n"
+            "  - L indica o número médio de clientes na fila e em atendimento.\n"
+            "  - Lq mostra quantos clientes esperam na fila, em média.\n"
+            "  - W é o tempo médio total que o cliente passa no sistema (espera + serviço).\n"
+            "  - Wq corresponde ao tempo médio de espera na fila antes do atendimento.\n\n"
+            "Boas práticas:\n"
+            "  • Se ρ estiver próximo de 1, considere aumentar a taxa de atendimento ou reduzir a taxa de chegada.\n"
+            "  • Utilize este modelo quando houver apenas um ponto de atendimento com fila ilimitada."
+        )
+
+        conteudo_mmc = (
+            "Modelo M/M/c (ou M/M/s)\n"
+            "========================\n"
+            "• Sistema com 'c' servidores idênticos trabalhando em paralelo e fila infinita.\n"
+            "• As chegadas são Poisson e os tempos de serviço seguem distribuição exponencial.\n"
+            "• A utilização média por servidor é dada por ρ = λ / (c·μ). O sistema é estável se ρ < 1.\n\n"
+            "Como interpretar:\n"
+            "  - P₀ indica a probabilidade de todos os servidores estarem livres.\n"
+            "  - L e Lq mostram, respectivamente, o tamanho médio do sistema e da fila considerando múltiplos servidores.\n"
+            "  - W e Wq revelam os tempos médios de permanência do cliente, levando em conta a possibilidade de atendimento imediato.\n\n"
+            "Dicas de uso:\n"
+            "  • Aumentar o número de servidores reduz o tempo de espera, porém aumenta o custo operacional.\n"
+            "  • Utilize quando existir atendimento paralelo (ex.: caixas de banco, guichês, call centers)."
+        )
+
+        conteudo_mm1k = (
+            "Modelo M/M/1/K\n"
+            "================\n"
+            "• Variante do M/M/1 com capacidade total limitada a K clientes (fila + atendimento).\n"
+            "• Quando o sistema atinge a capacidade máxima, novos clientes são bloqueados ou perdidos.\n"
+            "• A estabilidade depende da relação entre λ, μ e K; mesmo com λ ≥ μ, o sistema não explode, mas há rejeição.\n\n"
+            "Métricas específicas:\n"
+            "  - P₀ é a probabilidade do sistema estar vazio e Pₖ (não exibido) representa o bloqueio (sistema cheio).\n"
+            "  - L e Lq refletem o número médio de clientes presentes respeitando a capacidade finita.\n"
+            "  - W e Wq consideram apenas os clientes aceitos pelo sistema.\n\n"
+            "Aplicações e recomendações:\n"
+            "  • Adequado para processos com limite físico de espera (ex.: vagas de estacionamento, canais de comunicação).\n"
+            "  • Avalie Pₖ para medir a taxa de perdas e tomar decisões sobre expansão de capacidade."
+        )
+
+        criar_aba(notebook, "  M/M/1  ", conteudo_mm1)
+        criar_aba(notebook, "  M/M/c  ", conteudo_mmc)
+        criar_aba(notebook, "  M/M/1/K  ", conteudo_mm1k)
+
+        metricas_frame = ttk.LabelFrame(ajuda_janela, text="Métricas de Saída Apresentadas", padding=10)
+        metricas_frame.pack(fill="x", padx=10, pady=(5, 10))
+
+        metricas_texto = (
+            "ρ (Rho) — Utilização média do(s) servidor(es).\n"
+            "P₀ — Probabilidade de o sistema estar vazio.\n"
+            "L — Número médio de clientes no sistema.\n"
+            "Lq — Número médio de clientes aguardando na fila.\n"
+            "W — Tempo médio total no sistema.\n"
+            "Wq — Tempo médio de espera na fila."
+        )
+
+        ttk.Label(metricas_frame, text=metricas_texto, justify="left").pack(anchor="w")
+
+        botoes_frame = ttk.Frame(ajuda_janela)
+        botoes_frame.pack(pady=(0, 10))
+
+        ttk.Button(botoes_frame, text="Fechar", command=ajuda_janela.destroy).pack()
 
     # --- Funções de Cálculo (Handlers) ---
 
