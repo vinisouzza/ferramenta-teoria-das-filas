@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, scrolledtext
 import math
 from datetime import datetime
 import re # Importa regex para facilitar a extração dos parâmetros
@@ -440,7 +440,7 @@ class CalculadoraFilas(tk.Tk):
         criar_aba(notebook, "  M/M/1/K  ", conteudo_mm1k)
 
         metricas_frame = ttk.LabelFrame(ajuda_janela, text="Métricas de Saída Apresentadas", padding=10)
-        metricas_frame.pack(fill="x", padx=10, pady=(5, 10))
+        metricas_frame.pack(fill="both", expand=True, padx=10, pady=(5, 10))
 
         metricas_texto = (
             "ρ (Rho) — Utilização média do(s) servidor(es).\n"
@@ -451,7 +451,18 @@ class CalculadoraFilas(tk.Tk):
             "Wq — Tempo médio de espera na fila."
         )
 
-        ttk.Label(metricas_frame, text=metricas_texto, justify="left").pack(anchor="w")
+        metricas_widget = scrolledtext.ScrolledText(
+            metricas_frame,
+            wrap=tk.WORD,
+            height=6,
+            font=("Helvetica", 10),
+            relief="flat",
+            background="#f7f7f7",
+            state="normal",
+        )
+        metricas_widget.insert(tk.END, metricas_texto)
+        metricas_widget.config(state="disabled")
+        metricas_widget.pack(fill="both", expand=True)
 
         botoes_frame = ttk.Frame(ajuda_janela)
         botoes_frame.pack(pady=(0, 10))
